@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | Tap Tap Earn</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f1f2b5, #135058);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      color: #fff;
+    }
+    #loginBox, #gameBox, #loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      padding: 30px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+    }
+    #loginBox input {
+      padding: 10px;
+      width: 250px;
+      border: none;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #ffcc00;
+      color: #000;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 0 10px #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    #circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #adminPanel {
+      margin-top: 20px;
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 10px;
+    }
+    #adminPanel ul {
+      list-style: none;
+      padding: 0;
+      color: #fff;
+    }
+    #loading {
+      font-size: 22px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Page -->
+  <div id="loginBox">
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button onclick="handleLogin()">Login</button>
+    <div id="loginError" style="color: red;"></div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading">Loading...</div>
+
+  <!-- Game Box -->
+  <div id="gameBox">
+    <h1>Tap Tap Earn</h1>
+    <div id="coinCount">Coins: 1</div>
+    <div id="circle" onclick="tapCoin()">
+      <img src="https://i.imgur.com/7b1NRkR.png" alt="Hamster">
+    </div>
+    <button onclick="resetCoins()">Reset</button>
+
+    <div id="adminPanel">
+      <h3>Admin Panel - All Users</h3>
+      <ul id="userList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const loginBox = document.getElementById('loginBox');
+    const loading = document.getElementById('loading');
+    const gameBox = document.getElementById('gameBox');
+
+    // Show login form initially
+    loginBox.style.display = 'flex';
+
+    // Login Logic
+    function handleLogin() {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+
+      if (email && pass.length >= 3) {
+        // Save email
+        localStorage.setItem("user_email", email);
+
+        // Save in all users
+        let users = JSON.parse(localStorage.getItem("all_users")) || [];
+        if (!users.includes(email)) {
+          users.push(email);
+          localStorage.setItem("all_users", JSON.stringify(users));
+        }
+
+        // Set default coins if not exists
+        if (!localStorage.getItem("coins_" + email)) {
+          localStorage.setItem("coins_" + email, 1);
+        }
+
+        // Loading
+        loginBox.style.display = 'none';
+        loading.style.display = 'flex';
+
+        setTimeout(() => {
+          loading.style.display = 'none';
+          showGame(email);
+        }, 2000);
+      } else {
+        document.getElementById("loginError").innerText = "Wrong email or password!";
+      }
+    }
+
+    // Show game
+    function showGame(email) {
+      gameBox.style.display = 'flex';
+
+      let coins = parseInt(localStorage.getItem("coins_" + email)) || 1;
+      document.getElementById("coinCount").innerText = "Coins: " + coins;
+
+      window.tapCoin = function() {
+        coins++;
+        localStorage.setItem("coins_" + email, coins);
+        document.getElementById("coinCount").innerText = "Coins: " + coins;
+      };
+
+      window.resetCoins = function() {
+        coins = 1;
+        localStorage.setItem("coins_" + email, coins);
+        document.getElementById("coinCount").innerText = "Coins: " + coins;
+      };
+
+      const userList = document.getElementById("userList");
+      userList.innerHTML = '';
+      const users = JSON.parse(localStorage.getItem("all_users")) || [];
+      users.forEach(u => {
+        const li = document.createElement("li");
+        li.innerText = u;
+        userList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
